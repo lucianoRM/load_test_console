@@ -1,0 +1,7 @@
+{
+  "type":"ramp",
+  "timeSlice":1000,
+  "slope":1,
+  "threshold":100,
+  "initialValue":50
+}

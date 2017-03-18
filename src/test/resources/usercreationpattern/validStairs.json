@@ -1,0 +1,8 @@
+{
+  "type":"stairs",
+  "timeSlice":1000,
+  "threshold": 100,
+  "initialValue":0,
+  "stepWidth":10,
+  "stepHeight":10
+}

@@ -3,6 +3,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import exception.InvalidScriptException;
+import usercreationpattern.RampUserCreationPattern;
+import usercreationpattern.UserCreationPattern;
+import usercreationpattern.UserCreationPatternFactory;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -36,7 +39,7 @@ public class ScriptLoader {
         }catch(NullPointerException e) {
             throw new InvalidScriptException();
         }
-        this.userCreationPattern = new UserCreationPattern(userPatternObject);
+        this.userCreationPattern = UserCreationPatternFactory.createUserCreationPattern(userPatternObject);
     }
 
     /**
