@@ -1,0 +1,13 @@
+{
+  "userCreationPattern":{},
+  "actions": [
+    {
+      "method":"GET",
+      "url":"http://www.google.com"
+    },
+    {
+      "method":"POST",
+      "url":"http://www.facebook.com"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "userCreationPattern" : {}
+  "actions" : [
+    {
+      "invalidMethodKey":"GET",
+      "invalidUrlKey":"http://www.google.com"
+    }
+  ]
+}
