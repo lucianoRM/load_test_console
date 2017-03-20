@@ -1,5 +1,11 @@
 {
-  "userCreationPattern":{},
+  "userCreationPattern":{
+    "type":"ramp",
+    "timeSlice":10000,
+    "slope":1,
+    "threshold":10,
+    "initialValue":0
+  },
   "actions": [
     {
       "method":"GET",
