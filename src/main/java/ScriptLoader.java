@@ -39,7 +39,8 @@ public class ScriptLoader {
         }catch(NullPointerException e) {
             throw new InvalidScriptException();
         }
-        this.userCreationPattern = UserCreationPatternFactory.createUserCreationPattern(userPatternObject);
+        UserCreationPatternFactory userCreationPatternFactory = new UserCreationPatternFactory();
+        this.userCreationPattern = userCreationPatternFactory.createUserCreationPattern(userPatternObject);
     }
 
     /**

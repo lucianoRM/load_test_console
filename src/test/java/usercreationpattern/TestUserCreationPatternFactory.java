@@ -17,13 +17,15 @@ import static org.junit.Assert.assertTrue;
  */
 public class TestUserCreationPatternFactory {
 
+    private static UserCreationPatternFactory userCreationPatternFactory = new UserCreationPatternFactory();
+
     @Test
     public void testCorrectRampPatternCreation() throws FileNotFoundException, InvalidScriptException{
         URL scriptPathUrl = this.getClass().getResource("validRamp.json");
         JsonParser jsonParser = new JsonParser();
         JsonElement patternElement = jsonParser.parse(new FileReader(scriptPathUrl.getPath()));
 
-        UserCreationPattern userCreationPattern = UserCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
+        UserCreationPattern userCreationPattern = userCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
         assertTrue(userCreationPattern.getClass() == RampUserCreationPattern.class);
     }
 
@@ -33,7 +35,7 @@ public class TestUserCreationPatternFactory {
         JsonParser jsonParser = new JsonParser();
         JsonElement patternElement = jsonParser.parse(new FileReader(scriptPathUrl.getPath()));
 
-        UserCreationPattern userCreationPattern = UserCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
+        UserCreationPattern userCreationPattern = userCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
         assertTrue(userCreationPattern.getClass() == RampUserCreationPattern.class);
     }
 
@@ -43,7 +45,7 @@ public class TestUserCreationPatternFactory {
         JsonParser jsonParser = new JsonParser();
         JsonElement patternElement = jsonParser.parse(new FileReader(scriptPathUrl.getPath()));
 
-        UserCreationPattern userCreationPattern = UserCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
+        UserCreationPattern userCreationPattern = userCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
         assertTrue(userCreationPattern.getClass() == RampUserCreationPattern.class);
     }
 
@@ -53,7 +55,7 @@ public class TestUserCreationPatternFactory {
         JsonParser jsonParser = new JsonParser();
         JsonElement patternElement = jsonParser.parse(new FileReader(scriptPathUrl.getPath()));
 
-        UserCreationPattern userCreationPattern = UserCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
+        UserCreationPattern userCreationPattern = userCreationPatternFactory.createUserCreationPattern(patternElement.getAsJsonObject());
         assertTrue(userCreationPattern.getClass() == RampUserCreationPattern.class);
     }
 }

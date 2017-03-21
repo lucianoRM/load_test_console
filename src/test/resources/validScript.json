@@ -1,7 +1,7 @@
 {
   "userCreationPattern":{
     "type":"ramp",
-    "timeSlice":10000,
+    "timeSlice":1000,
     "slope":1,
     "threshold":10,
     "initialValue":0

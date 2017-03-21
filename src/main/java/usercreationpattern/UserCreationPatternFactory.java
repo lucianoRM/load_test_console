@@ -13,7 +13,7 @@ public class UserCreationPatternFactory {
     private final static String CUSTOM_PATTERN_VALUE = "custom";
 
 
-    public static UserCreationPattern createUserCreationPattern(JsonObject patternObject) throws InvalidScriptException {
+    public UserCreationPattern createUserCreationPattern(JsonObject patternObject) throws InvalidScriptException {
         String type;
         try{
             type = patternObject.get(PATTERN_TYPE_KEY).getAsString();
