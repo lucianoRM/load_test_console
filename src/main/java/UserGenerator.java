@@ -22,9 +22,14 @@ public class UserGenerator implements Runnable{
         int lastUserValue = 0;
         while(true) {
             if(this.userCreationPattern.getPatternValues().containsKey(logicTime)) {
-                lastUserValue = this.userCreationPattern.getPatternValues().get(logicTime);
+                int actualUserValue = this.userCreationPattern.getPatternValues().get(logicTime);
+                int totalToGenerate = actualUserValue - lastUserValue;
+                if(totalToGenerate > 0) {
+                    this.outgoingUsersQueue.add(totalToGenerate);
+                }
+                lastUserValue = actualUserValue;
             }
-            this.outgoingUsersQueue.add(lastUserValue);
+
             logicTime++;
             TimeUnit.MILLISECONDS.sleep(this.userCreationPattern.getTimeSlice());
         }
