@@ -15,7 +15,6 @@ public class Main {
 
         ScriptLoader scriptLoader = new ScriptLoader();
         scriptLoader.loadScript("/home/luciano/Documents/Taller3/load_test_console/src/test/resources/validScript.json");
-
         BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
         UserGenerator userGenerator = new UserGenerator(scriptLoader.getUserCreationPattern(),queue);
         UserLauncher userLauncher = new UserLauncher(scriptLoader.getActionList(),queue);

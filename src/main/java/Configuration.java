@@ -26,7 +26,7 @@ public class Configuration {
     }
 
     public static int getConcurrentDownloadersCount() {
-        return Integer.parseInt(properties.getProperty("concurrentdownloaderscount"));
+        return Integer.parseInt(properties.getProperty("concurrentdownloderscount"));
     }
 
 }
