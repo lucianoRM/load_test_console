@@ -21,13 +21,16 @@ import java.util.concurrent.Executors;
  */
 public class User implements Runnable {
 
+    private static final String GET_ACTION_METHOD = "GET";
+    private static final String SOURCE_ATTRIBUTE = "src";
+
     private static final List<String> RESOURCES_TAGS = new ArrayList<String>() {{
         add("img");
         add("link");
         add("img");
     }};
 
-    private static final String SOURCE_ATTRIBUTE = "src";
+
 
     private List<Action> scriptActions;
     private ExecutorService downlaodersPool = Executors.newFixedThreadPool(Configuration.getConcurrentDownloadersCount());
@@ -37,7 +40,7 @@ public class User implements Runnable {
         this.scriptActions = scriptActions;
     }
 
-    private void parseResponse(Response response) {
+    private void parseResponseAndStartDownloaders(Response response) {
 
         Document doc = null;
         try {
@@ -63,15 +66,31 @@ public class User implements Runnable {
 
     }
 
+
+    private Request createRequest(Action action) {
+        if(action.getMethod().equals(GET_ACTION_METHOD)) {
+            return new Request.Builder()
+                    .url(action.getUrl())
+                    .build();
+        }else {
+            return new Request.Builder()
+                    .url(action.getUrl())
+                    .post(null)
+                    .build();
+        }
+    }
+
     public void run() {
-        Request request = new Request.Builder()
-                .url("https://www.google.com.ar/search?q=hola&source=lnms&tbm=isch&sa=X&ved=0ahUKEwiSz9ea5-jSAhVKFZAKHRejBF0Q_AUICCgB&biw=1280&bih=582")
-                .build();
-        try {
-            Response response = this.client.newCall(request).execute();
-            this.parseResponse(response);
-        }catch(IOException e){
-            e.printStackTrace();
+
+        for(Action action : this.scriptActions) {
+            Request request = this.createRequest(action);
+            Response response = null;
+            try {
+                response = this.client.newCall(request).execute();
+            }catch(IOException e) {
+                e.printStackTrace();
+            }
+            this.parseResponseAndStartDownloaders(response);
         }
     }
 }
