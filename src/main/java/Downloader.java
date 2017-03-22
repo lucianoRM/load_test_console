@@ -3,6 +3,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by ms0371 on 3/22/17.
@@ -11,9 +12,11 @@ public class Downloader implements Runnable {
 
     private String url;
     private OkHttpClient client = new OkHttpClient();
+    private BlockingQueue<DownloaderInfo> outgoingInfoQueue;
 
-    public Downloader(String url) {
+    public Downloader(String url,BlockingQueue<DownloaderInfo> outgoingInfoQueue) {
         this.url = url;
+        this.outgoingInfoQueue = outgoingInfoQueue;
     }
 
     private Request createRequest() {
@@ -24,14 +27,17 @@ public class Downloader implements Runnable {
 
     public void run() {
 
+        long tStart = System.currentTimeMillis();
         Request request = this.createRequest();
-        Response response;
+        Response response = null;
         try {
             response = this.client.newCall(request).execute();
-            System.out.println(response.body().string());
         }catch(IOException e) {
             e.printStackTrace();
         }
+        long tEnd = System.currentTimeMillis();
+        DownloaderInfo downloaderInfo = new DownloaderInfo(this.url,tEnd - tStart,response.body().contentLength());
+        this.outgoingInfoQueue.add(downloaderInfo);
     }
 
 

@@ -12,9 +12,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * Created by luciano on 19/03/17.
@@ -35,12 +33,16 @@ public class User implements Runnable {
     private List<Action> scriptActions;
     private ExecutorService downlaodersPool = Executors.newFixedThreadPool(Configuration.getConcurrentDownloadersCount());
     private OkHttpClient client = new OkHttpClient();
+    private BlockingQueue<DownloaderInfo> downloaderIncomingInfoQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<ActionInfo> reporterOutgoingInfoQueue;
+    private int runningDownloaders = 0;
 
-    public User(List<Action> scriptActions) {
+    public User(List<Action> scriptActions,BlockingQueue<ActionInfo> reporterOutgoingInfoQueue) {
+        this.reporterOutgoingInfoQueue = reporterOutgoingInfoQueue;
         this.scriptActions = scriptActions;
     }
 
-    private void parseResponseAndStartDownloaders(Response response) {
+    private void executeAction(Response response) {
 
         Document doc = null;
         try {
@@ -54,14 +56,16 @@ public class User implements Runnable {
             launchDownloaders(elements);
         }
 
-
     }
 
     private void launchDownloaders(Elements elements) {
 
         for(Element element : elements) {
             String url = element.attr(SOURCE_ATTRIBUTE);
-            if(url != "") System.out.println(url); //"" means that the attribute does not exist in the tag
+            if(url != "") { //"" means that the attribute does not exist in the tag
+                this.downlaodersPool.execute(new Downloader(url,this.downloaderIncomingInfoQueue));
+                runningDownloaders++;
+            }
         }
 
     }
@@ -80,6 +84,27 @@ public class User implements Runnable {
         }
     }
 
+    private void reportInfo(Action action) {
+
+        long elapsedTime = 0;
+        long downloadedBytes = 0;
+
+        while(this.runningDownloaders > 0){
+            try {
+                DownloaderInfo downloaderInfo = this.downloaderIncomingInfoQueue.take();
+                elapsedTime+=downloaderInfo.getElapsedTime();
+                downloadedBytes+=downloaderInfo.getDownloadedBytes();
+                this.runningDownloaders--;
+
+            }catch(InterruptedException e){
+                e.printStackTrace();
+            }
+        }
+        ActionInfo actionInfo = new ActionInfo(action.getUrl(),elapsedTime,downloadedBytes);
+        this.reporterOutgoingInfoQueue.add(actionInfo);
+
+    }
+
     public void run() {
 
         for(Action action : this.scriptActions) {
@@ -87,10 +112,12 @@ public class User implements Runnable {
             Response response = null;
             try {
                 response = this.client.newCall(request).execute();
+                System.out.println(action.getUrl());
             }catch(IOException e) {
                 e.printStackTrace();
             }
-            this.parseResponseAndStartDownloaders(response);
+            this.executeAction(response);
+            this.reportInfo(action);
         }
     }
 }

@@ -29,4 +29,12 @@ public class Configuration {
         return Integer.parseInt(properties.getProperty("concurrentdownloderscount"));
     }
 
+    public static int getTimeout() {
+        return Integer.parseInt(properties.getProperty("timeout"));
+    }
+
+
+    public static int getReportingTimeSlice() {
+        return Integer.parseInt(properties.getProperty("reportingtimeslice"));
+    }
 }

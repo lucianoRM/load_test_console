@@ -14,13 +14,16 @@ public class Main {
     public static void main(String[] args) throws InterruptedException, InvalidScriptException, FileNotFoundException{
 
         ScriptLoader scriptLoader = new ScriptLoader();
-        scriptLoader.loadScript("/home/luciano/Documents/Taller3/load_test_console/src/test/resources/validScript.json");
+        scriptLoader.loadScript("./src/test/resources/validScript.json");
         BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
+        BlockingQueue<ActionInfo> actionInfoBlockingQueue = new LinkedBlockingQueue<>();
         UserGenerator userGenerator = new UserGenerator(scriptLoader.getUserCreationPattern(),queue);
-        UserLauncher userLauncher = new UserLauncher(scriptLoader.getActionList(),queue);
+        UserLauncher userLauncher = new UserLauncher(scriptLoader.getActionList(),queue,actionInfoBlockingQueue);
+        Reporter reporter = new Reporter(actionInfoBlockingQueue);
 
         new Thread(userGenerator).start();
         new Thread(userLauncher).start();
+        new Thread(reporter).start();
 
 
     }

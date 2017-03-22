@@ -29,7 +29,6 @@ public class UserGenerator implements Runnable{
                 }
                 lastUserValue = actualUserValue;
             }
-
             logicTime++;
             TimeUnit.MILLISECONDS.sleep(this.userCreationPattern.getTimeSlice());
         }
