@@ -72,7 +72,7 @@ public class User implements Runnable {
         for(Element element : elements) {
             String url = element.attr(SOURCE_ATTRIBUTE);
             if(url != "") { //"" means that the attribute does not exist in the tag
-                this.downlaodersPool.execute(new Downloader(url,element.className(),this.downloaderIncomingInfoQueue));
+                this.downlaodersPool.execute(new Downloader(url,element.nodeName(),this.downloaderIncomingInfoQueue,this.monitorOutgoingInfoQueue));
                 runningDownloaders++;
             }
         }
