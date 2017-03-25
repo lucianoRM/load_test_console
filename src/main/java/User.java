@@ -21,11 +21,12 @@ public class User implements Runnable {
 
     private static final String GET_ACTION_METHOD = "GET";
     private static final String SOURCE_ATTRIBUTE = "src";
+    private static final String URL_KEY = "url";
 
     private static final List<String> RESOURCES_TAGS = new ArrayList<String>() {{
         add("img");
         add("link");
-        add("img");
+        add("script");
     }};
 
 
@@ -35,17 +36,22 @@ public class User implements Runnable {
     private OkHttpClient client = new OkHttpClient();
     private BlockingQueue<DownloaderInfo> downloaderIncomingInfoQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<ActionInfo> reporterOutgoingInfoQueue;
+    private BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue;
     private int runningDownloaders = 0;
     private long startTime = 0;
 
-    public User(List<Action> scriptActions,BlockingQueue<ActionInfo> reporterOutgoingInfoQueue) {
+    public User(List<Action> scriptActions,BlockingQueue<ActionInfo> reporterOutgoingInfoQueue,BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue) {
         this.reporterOutgoingInfoQueue = reporterOutgoingInfoQueue;
+        this.monitorOutgoingInfoQueue = monitorOutgoingInfoQueue;
         this.scriptActions = scriptActions;
     }
 
     private void executeAction(Response response) {
 
         Document doc = null;
+        MonitorInfo monitorInfo = new MonitorInfo();
+        monitorInfo.notifyActionStarted(URL_KEY);
+        this.monitorOutgoingInfoQueue.add(monitorInfo);
         try {
             doc = Jsoup.parse(response.body().string(),"UTF-8", Parser.xmlParser());
         }catch(IOException e){
@@ -55,6 +61,9 @@ public class User implements Runnable {
             Elements elements = doc.getElementsByTag(tag);
             launchDownloaders(elements);
         }
+        monitorInfo = new MonitorInfo();
+        monitorInfo.notifyActionEnded(URL_KEY);
+        this.monitorOutgoingInfoQueue.add(monitorInfo);
 
     }
 
@@ -63,7 +72,7 @@ public class User implements Runnable {
         for(Element element : elements) {
             String url = element.attr(SOURCE_ATTRIBUTE);
             if(url != "") { //"" means that the attribute does not exist in the tag
-                this.downlaodersPool.execute(new Downloader(url,this.downloaderIncomingInfoQueue));
+                this.downlaodersPool.execute(new Downloader(url,element.className(),this.downloaderIncomingInfoQueue));
                 runningDownloaders++;
             }
         }

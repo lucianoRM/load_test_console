@@ -11,11 +11,13 @@ import java.util.concurrent.BlockingQueue;
 public class Downloader implements Runnable {
 
     private String url;
+    private String resourceType;
     private OkHttpClient client = new OkHttpClient();
     private BlockingQueue<DownloaderInfo> outgoingInfoQueue;
 
-    public Downloader(String url,BlockingQueue<DownloaderInfo> outgoingInfoQueue) {
+    public Downloader(String url,String resourceType,BlockingQueue<DownloaderInfo> outgoingInfoQueue) {
         this.url = url;
+        this.resourceType = resourceType;
         this.outgoingInfoQueue = outgoingInfoQueue;
     }
 

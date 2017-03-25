@@ -17,13 +17,16 @@ public class Main {
         scriptLoader.loadScript("./src/test/resources/validScript.json");
         BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
         BlockingQueue<ActionInfo> actionInfoBlockingQueue = new LinkedBlockingQueue<>();
+        BlockingQueue<MonitorInfo> monitorInfoBlockingQueue = new LinkedBlockingQueue<>();
+        Monitor monitor = new Monitor(monitorInfoBlockingQueue);
         UserGenerator userGenerator = new UserGenerator(scriptLoader.getUserCreationPattern(),queue);
-        UserLauncher userLauncher = new UserLauncher(scriptLoader.getActionList(),queue,actionInfoBlockingQueue);
+        UserLauncher userLauncher = new UserLauncher(scriptLoader.getActionList(),queue,actionInfoBlockingQueue,monitorInfoBlockingQueue);
         Reporter reporter = new Reporter(actionInfoBlockingQueue);
 
         new Thread(userGenerator).start();
         new Thread(userLauncher).start();
         new Thread(reporter).start();
+        new Thread(monitor).start();
 
 
     }

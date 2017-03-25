@@ -37,4 +37,8 @@ public class Configuration {
     public static int getReportingTimeSlice() {
         return Integer.parseInt(properties.getProperty("reportingtimeslice"));
     }
+
+    public static String getMonitorFilePath() {
+        return properties.getProperty("monitorfilepath");
+    }
 }
