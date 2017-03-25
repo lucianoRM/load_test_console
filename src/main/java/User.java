@@ -36,6 +36,7 @@ public class User implements Runnable {
     private BlockingQueue<DownloaderInfo> downloaderIncomingInfoQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<ActionInfo> reporterOutgoingInfoQueue;
     private int runningDownloaders = 0;
+    private long startTime = 0;
 
     public User(List<Action> scriptActions,BlockingQueue<ActionInfo> reporterOutgoingInfoQueue) {
         this.reporterOutgoingInfoQueue = reporterOutgoingInfoQueue;
@@ -50,7 +51,6 @@ public class User implements Runnable {
         }catch(IOException e){
             e.printStackTrace();
         }
-
         for(String tag : RESOURCES_TAGS) {
             Elements elements = doc.getElementsByTag(tag);
             launchDownloaders(elements);
@@ -86,13 +86,11 @@ public class User implements Runnable {
 
     private void reportInfo(Action action) {
 
-        long elapsedTime = 0;
         long downloadedBytes = 0;
 
         while(this.runningDownloaders > 0){
             try {
                 DownloaderInfo downloaderInfo = this.downloaderIncomingInfoQueue.take();
-                elapsedTime+=downloaderInfo.getElapsedTime();
                 downloadedBytes+=downloaderInfo.getDownloadedBytes();
                 this.runningDownloaders--;
 
@@ -100,19 +98,31 @@ public class User implements Runnable {
                 e.printStackTrace();
             }
         }
-        ActionInfo actionInfo = new ActionInfo(action.getUrl(),elapsedTime,downloadedBytes);
+        ActionInfo actionInfo = new ActionInfo(action.getUrl(),this.stopTimer(),downloadedBytes);
         this.reporterOutgoingInfoQueue.add(actionInfo);
 
     }
 
+    private void startTimer() {
+        this.startTime = System.currentTimeMillis();
+    }
+
+    private long stopTimer() {
+        long currentTime = System.currentTimeMillis();
+        long startTime = this.startTime;
+        this.startTime = 0;
+        return currentTime - startTime;
+    }
+
+
     public void run() {
 
         for(Action action : this.scriptActions) {
+            this.startTimer();
             Request request = this.createRequest(action);
             Response response = null;
             try {
                 response = this.client.newCall(request).execute();
-                System.out.println(action.getUrl());
             }catch(IOException e) {
                 e.printStackTrace();
             }
