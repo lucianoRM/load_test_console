@@ -32,7 +32,7 @@ public class Main {
         monitorThread.start();
 
 
-        TimeUnit.MILLISECONDS.sleep(5000);
+        TimeUnit.MILLISECONDS.sleep(20000);
         SessionControl.stop();
         userGeneratorThread.join();
         userLauncherThread.join();
