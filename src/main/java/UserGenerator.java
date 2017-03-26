@@ -45,7 +45,7 @@ public class UserGenerator implements Runnable{
         try {
             this.generateUsers();
         }catch(InterruptedException e){
-            this.logger.warn(e);
+            this.logger.warn("Interrupted while locked " + e);
         }
         this.logger.info("Finished");
     }

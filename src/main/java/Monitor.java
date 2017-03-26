@@ -48,7 +48,8 @@ public class Monitor implements Runnable{
         try {
             this.monitorFile.createNewFile();
         }catch(IOException e) {
-            this.logger.error(e);
+            this.logger.error("Terminating " + e);
+            SessionControl.stop();
         }
     }
 
@@ -122,7 +123,8 @@ public class Monitor implements Runnable{
             writer.close();
 
         }catch (IOException e ){
-            this.logger.error(e);
+            this.logger.error("Terminating " + e);
+            SessionControl.stop();
         }
 
 
@@ -140,8 +142,7 @@ public class Monitor implements Runnable{
                 this.update(monitorInfo);
                 this.write();
             }catch(InterruptedException e){
-                this.logger.error(e);
-                this.logger.error("Exiting");
+                this.logger.error("Exiting " + e);
                 break;
             }
         }

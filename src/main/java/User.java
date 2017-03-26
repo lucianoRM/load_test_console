@@ -20,9 +20,12 @@ import java.util.concurrent.*;
 public class User implements Runnable {
 
     private static final String GET_ACTION_METHOD = "GET";
-    private static final String SOURCE_ATTRIBUTE = "src";
+
     private static final String URL_KEY = "url";
     private static final String NEW_USER_URL = "new_user";
+
+    private static final String SOURCE_ATTRIBUTE = "src";
+    private static final String HREF_ATTRIBUTE = "href";
 
     private static final List<String> RESOURCES_TAGS = new ArrayList<String>() {{
         add("img");
@@ -34,7 +37,7 @@ public class User implements Runnable {
 
     private List<Action> scriptActions;
     private ExecutorService downlaodersPool = Executors.newFixedThreadPool(Configuration.getConcurrentDownloadersCount());
-    private OkHttpClient client = new OkHttpClient();
+    private OkHttpClient client;
     private BlockingQueue<DownloaderInfo> downloaderIncomingInfoQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<ActionInfo> reporterOutgoingInfoQueue;
     private BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue;
@@ -47,6 +50,12 @@ public class User implements Runnable {
         this.reporterOutgoingInfoQueue = reporterOutgoingInfoQueue;
         this.monitorOutgoingInfoQueue = monitorOutgoingInfoQueue;
         this.scriptActions = scriptActions;
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.connectTimeout(1, TimeUnit.MINUTES)
+                .writeTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES);
+
+        this.client = builder.build();
     }
 
     private void executeAction(Response response) {
@@ -58,7 +67,8 @@ public class User implements Runnable {
         try {
             doc = Jsoup.parse(response.body().string(),"UTF-8", Parser.xmlParser());
         }catch(IOException e){
-            this.logger.warn("JSoup parse exception" + e);
+            this.logger.warn("JSoup parse exception " + e);
+            return;
         }
         for(String tag : RESOURCES_TAGS) {
             Elements elements = doc.getElementsByTag(tag);
@@ -70,11 +80,18 @@ public class User implements Runnable {
 
     }
 
+    private boolean isLink(String url) {
+        return url.startsWith("http");
+    }
+
     private void launchDownloaders(Elements elements) {
 
         for(Element element : elements) {
             String url = element.attr(SOURCE_ATTRIBUTE);
-            if(url != "") { //"" means that the attribute does not exist in the tag
+            if(url == "") {
+                url = element.attr(HREF_ATTRIBUTE);
+            }
+            if(url != ""&& this.isLink(url)) { //"" means that the attribute does not exist in the tag
                 this.downlaodersPool.execute(new Downloader(url,element.nodeName(),this.downloaderIncomingInfoQueue,this.monitorOutgoingInfoQueue));
                 runningDownloaders++;
                 this.logger.info("Started downloader");
@@ -106,15 +123,17 @@ public class User implements Runnable {
                 this.logger.info("Waiting for downloader info");
                 DownloaderInfo downloaderInfo = this.downloaderIncomingInfoQueue.poll(Configuration.getTimeout(),TimeUnit.MILLISECONDS);
                 if(downloaderInfo == null) {
-                    this.logger.warn("Info queue timed out");
+                    this.logger.info("Info queue timed out");
                     continue;
                 }
                 this.logger.info("Read downloader info");
-                downloadedBytes+=downloaderInfo.getDownloadedBytes();
+                if(!downloaderInfo.getError()) {
+                    downloadedBytes+=downloaderInfo.getDownloadedBytes();
+                }
                 this.runningDownloaders--;
 
             }catch(InterruptedException e){
-                this.logger.warn("Interrupted while locked in queue");
+                this.logger.warn("Interrupted while locked in queue " + e);
             }
         }
         ActionInfo actionInfo = new ActionInfo(action.getUrl(),this.stopTimer(),downloadedBytes);
@@ -153,8 +172,7 @@ public class User implements Runnable {
                     response = this.client.newCall(request).execute();
                     logger.info("Got url response");
                 } catch (IOException e) {
-                    this.logger.error(e);
-                    SessionControl.stop();
+                    this.logger.error("Exiting " + e);
                     break;
                 }
                 this.executeAction(response);
@@ -165,7 +183,7 @@ public class User implements Runnable {
             this.downlaodersPool.shutdown();
             this.downlaodersPool.awaitTermination(Configuration.getTimeout(),TimeUnit.MILLISECONDS);
         }catch(InterruptedException e) {
-            this.logger.error("Interrupted while waiting for downloaders to exit");
+            this.logger.error("Interrupted " + e);
         }
         logger.info("Finished");
     }

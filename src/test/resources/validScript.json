@@ -1,10 +1,10 @@
 {
   "userCreationPattern":{
     "type":"ramp",
-    "timeSlice":1000,
+    "timeSlice":5000,
     "slope":1,
-    "threshold":1,
-    "initialValue":1
+    "threshold":100,
+    "initialValue":0
   },
   "actions": [
     {
@@ -16,9 +16,8 @@
       "url":"http://www.facebook.com"
     },
     {
-      "method":"POST",
-      "url":"http://www.github.com",
-      "body":"this is the body"
+      "method":"GET",
+      "url":"http://www.github.com"
     }
   ]
 }

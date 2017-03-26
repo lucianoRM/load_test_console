@@ -104,7 +104,7 @@ public class Reporter implements Runnable{
                     this.updateTemporalValues(actionInfo);
                 }
             }catch (InterruptedException e){
-                this.logger.warn("Interrupted while locked in queue");
+                this.logger.warn("Interrupted while locked in queue " + e);
             }
             long tEnd = System.currentTimeMillis();
             elapsedTime += (tEnd - tStart);
@@ -125,10 +125,10 @@ public class Reporter implements Runnable{
             System.out.println("--MAX : " + this.reportTimes.get(entry.getKey()).getMax() + " ms");
             System.out.println("--AVG : " + this.reportTimes.get(entry.getKey()).getAvg() + " ms");
 
-            System.out.println("Sizes");
-            System.out.println("--MIN : " + this.reportSizes.get(entry.getKey()).getMin() + " ms");
-            System.out.println("--MAX : " + this.reportSizes.get(entry.getKey()).getMax() + " ms");
-            System.out.println("--AVG : " + this.reportSizes.get(entry.getKey()).getAvg() + " ms");
+//            System.out.println("Sizes");
+//            System.out.println("--MIN : " + this.reportSizes.get(entry.getKey()).getMin() + " ms");
+//            System.out.println("--MAX : " + this.reportSizes.get(entry.getKey()).getMax() + " ms");
+//            System.out.println("--AVG : " + this.reportSizes.get(entry.getKey()).getAvg() + " ms");
 
 
         }
@@ -141,7 +141,6 @@ public class Reporter implements Runnable{
             this.reportTimeSlice();
             this.displayReport();
 
-            this.totalUsers = 0;
             this.reportErrors = new HashMap<>();
             this.reportTimes = new HashMap<>();
             this.reportSizes = new HashMap<>();

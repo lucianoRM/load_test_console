@@ -22,7 +22,7 @@ public class Configuration {
             properties.load(is);
             is.close();
         } catch (IOException e) {
-            logger.warn("Error reading from properties file" + e);
+            logger.error("Error reading from properties file, terminating " + e);
             SessionControl.stop();
         }
     }

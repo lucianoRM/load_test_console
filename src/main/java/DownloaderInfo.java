@@ -6,11 +6,13 @@ public class DownloaderInfo {
     private String url;
     private Long downloadedBytes;
     private Long elapsedTime;
+    private boolean error;
 
-    public DownloaderInfo(String url,Long elapsedTime,Long downloadedBytes) {
+    public DownloaderInfo(String url,Long elapsedTime,Long downloadedBytes,boolean error) {
         this.url = url;
         this.elapsedTime = elapsedTime;
         this.downloadedBytes = downloadedBytes;
+        this.error = error;
     }
 
     public String getUrl() {
@@ -23,6 +25,10 @@ public class DownloaderInfo {
 
     public Long getDownloadedBytes() {
         return this.downloadedBytes;
+    }
+
+    public boolean getError() {
+        return this.error;
     }
 
 }

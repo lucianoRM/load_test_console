@@ -34,7 +34,7 @@ public class UserLauncher implements Runnable{
         Integer newUsers = this.incomingUsersQueue.poll(Configuration.getTimeout(), TimeUnit.MILLISECONDS);
         logger.info("Read queue");
         if(newUsers == null) {
-            logger.warn("Queue read timed out");
+            logger.info("Queue read timed out");
             return;
         }
         for(int i = 0; i < newUsers; i++) {
@@ -51,14 +51,14 @@ public class UserLauncher implements Runnable{
             try {
                 readQueueAndLaunchUsers();
             } catch (InterruptedException e) {
-                this.logger.warn(e);
+                this.logger.warn("Interrupted while locked " + e);
             }
         }
         this.usersPool.shutdown();
         try {
             this.usersPool.awaitTermination(Configuration.getTimeout(), TimeUnit.MILLISECONDS);
         }catch(InterruptedException e){
-            this.logger.error("Interrupted while waiting for users to exit");
+            this.logger.error("Interrupted " + e);
         }
         logger.info("Finished");
     }
