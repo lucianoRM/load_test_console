@@ -10,7 +10,7 @@ public class ReportPoint {
 
     public ReportPoint() {
         this.max = 0;
-        this.min = 0;
+        this.min = Long.MAX_VALUE;
         this.avg = 0;
         this.tot = 0;
     }

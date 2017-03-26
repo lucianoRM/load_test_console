@@ -107,14 +107,34 @@ public class Reporter implements Runnable{
         }
     }
 
+    private void displayReport() {
+        System.out.println("Total users : " + this.totalUsers);
+        for(Map.Entry<String,Map<String,Integer> > entry : this.reportErrors.entrySet()) {
+            System.out.println(entry.getKey());
+
+            System.out.println("Requests");
+            System.out.println("--Errors : " + entry.getValue().get(ERROR_KEY));
+            System.out.println("--Success : " + entry.getValue().get(SUCCESS_KEY));
+
+            System.out.println("Times");
+            System.out.println("--MIN : " + this.reportTimes.get(entry.getKey()).getMin() + " ms");
+            System.out.println("--MAX : " + this.reportTimes.get(entry.getKey()).getMax() + " ms");
+            System.out.println("--AVG : " + this.reportTimes.get(entry.getKey()).getAvg() + " ms");
+
+            System.out.println("Sizes");
+            System.out.println("--MIN : " + this.reportSizes.get(entry.getKey()).getMin() + " ms");
+            System.out.println("--MAX : " + this.reportSizes.get(entry.getKey()).getMax() + " ms");
+            System.out.println("--AVG : " + this.reportSizes.get(entry.getKey()).getAvg() + " ms");
+
+
+        }
+    }
+
     public void run() {
 
         while(SessionControl.shouldRun()) {
             this.reportTimeSlice();
-            System.out.println(this.reportErrors);
-            System.out.println(this.reportTimes);
-            System.out.println(this.reportSizes);
-            System.out.println(this.totalUsers);
+            this.displayReport();
 
             this.totalUsers = 0;
             this.reportErrors = new HashMap<>();
