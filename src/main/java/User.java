@@ -2,6 +2,8 @@ import com.google.common.collect.ImmutableMap;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -39,6 +41,8 @@ public class User implements Runnable {
     private BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue;
     private int runningDownloaders = 0;
     private long startTime = 0;
+    private Logger logger = LogManager.getLogger(this.getClass());
+
 
     public User(List<Action> scriptActions,BlockingQueue<ActionInfo> reporterOutgoingInfoQueue,BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue) {
         this.reporterOutgoingInfoQueue = reporterOutgoingInfoQueue;
@@ -74,6 +78,7 @@ public class User implements Runnable {
             if(url != "") { //"" means that the attribute does not exist in the tag
                 this.downlaodersPool.execute(new Downloader(url,element.nodeName(),this.downloaderIncomingInfoQueue,this.monitorOutgoingInfoQueue));
                 runningDownloaders++;
+                this.logger.info("Started downloader");
             }
         }
 
@@ -99,7 +104,13 @@ public class User implements Runnable {
 
         while(this.runningDownloaders > 0){
             try {
-                DownloaderInfo downloaderInfo = this.downloaderIncomingInfoQueue.take();
+                this.logger.info("Waiting for downloader info");
+                DownloaderInfo downloaderInfo = this.downloaderIncomingInfoQueue.poll(Configuration.getTimeout(),TimeUnit.MILLISECONDS);
+                if(downloaderInfo == null) {
+                    this.logger.warn("Info queue timed out");
+                    continue;
+                }
+                this.logger.info("Read downloader info");
                 downloadedBytes+=downloaderInfo.getDownloadedBytes();
                 this.runningDownloaders--;
 
@@ -126,17 +137,29 @@ public class User implements Runnable {
 
     public void run() {
 
-        for(Action action : this.scriptActions) {
-            this.startTimer();
-            Request request = this.createRequest(action);
-            Response response = null;
-            try {
-                response = this.client.newCall(request).execute();
-            }catch(IOException e) {
-                e.printStackTrace();
+        logger.info("Started");
+        while(SessionControl.shouldRun()) {
+            for (Action action : this.scriptActions) {
+                this.startTimer();
+                Request request = this.createRequest(action);
+                Response response = null;
+                try {
+                    logger.info("Requested url");
+                    response = this.client.newCall(request).execute();
+                    logger.info("Got url response");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                this.executeAction(response);
+                this.reportInfo(action);
             }
-            this.executeAction(response);
-            this.reportInfo(action);
         }
+        try {
+            this.downlaodersPool.shutdown();
+            this.downlaodersPool.awaitTermination(10000,TimeUnit.MILLISECONDS);
+        }catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+        logger.info("Finished");
     }
 }

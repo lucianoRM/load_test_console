@@ -3,7 +3,7 @@
     "type":"ramp",
     "timeSlice":1000,
     "slope":1,
-    "threshold":10,
+    "threshold":1,
     "initialValue":1
   },
   "actions": [

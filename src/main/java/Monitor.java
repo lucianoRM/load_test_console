@@ -81,11 +81,11 @@ public class Monitor implements Runnable{
     }
 
     private void write() {
-        System.out.println(this.informationCount);
+        //System.out.println(this.informationCount);
     }
 
     public void run() {
-        while(true) {
+        while(SessionControl.shouldRun()) {
             try {
                 MonitorInfo monitorInfo = this.incomingInfoQueue.poll(Configuration.getTimeout(), TimeUnit.MILLISECONDS);
                 if(monitorInfo == null) continue;

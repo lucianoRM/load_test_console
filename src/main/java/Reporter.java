@@ -64,9 +64,9 @@ public class Reporter implements Runnable{
 
     public void run() {
 
-        while(true) {
+        while(SessionControl.shouldRun()) {
             this.reportTimeSlice();
-            System.out.println(this.temporalValues);
+            //System.out.println(this.temporalValues);
             this.temporalValues = new HashMap<>();
         }
 
