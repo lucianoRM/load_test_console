@@ -13,32 +13,77 @@ public class Reporter implements Runnable{
     private static final String ELAPSED_TIME_KEY = "elapsed_time";
     private static final String DOWNLOADED_BYTES_KEY = "downloaded_bytes";
     private static final String USER_COUNT_KEY = "user_count";
+    private static final String NEW_USER_URL = "new_user";
+    private static final String ERROR_KEY = "error";
+    private static final String SUCCESS_KEY = "success";
+
 
     private BlockingQueue<ActionInfo> incomingActionInfoQueue;
     private int timeSlice = Configuration.getReportingTimeSlice();
-    private Map<String,Map<String,Long>> temporalValues;
+    private Map<String,ReportPoint> reportTimes;
+    private Map<String,ReportPoint> reportSizes;
+    private Map<String,Map<String,Integer>> reportErrors;
+    private int totalUsers;
 
 
     public Reporter(BlockingQueue<ActionInfo> incomingActionInfoQueue) {
         this.incomingActionInfoQueue = incomingActionInfoQueue;
-        temporalValues = new HashMap<>();
+        reportTimes = new HashMap<>();
+        reportSizes = new HashMap<>();
+        reportErrors = new HashMap<>();
+        totalUsers = 0;
+
+    }
+
+    private void updateReportErrors(ActionInfo actionInfo) {
+        Map<String,Integer> newErrors;
+        if(!reportErrors.containsKey(actionInfo.getUrl())) {
+            newErrors = new HashMap<>();
+            newErrors.put(ERROR_KEY,0);
+            newErrors.put(SUCCESS_KEY,0);
+        }else {
+            newErrors = this.reportErrors.get(actionInfo.getUrl());
+        }
+        if(actionInfo.getElapsedTime() == -1) { //Means that there was an error in the action request
+            newErrors.put(ERROR_KEY,newErrors.get(ERROR_KEY) + 1);
+        }else{
+            newErrors.put(SUCCESS_KEY,newErrors.get(SUCCESS_KEY) + 1);
+        }
+        this.reportErrors.put(actionInfo.getUrl(),newErrors);
+    }
+
+
+    private void updateReportTimes(ActionInfo actionInfo) {
+        ReportPoint reportPoint;
+        if(this.reportTimes.containsKey(actionInfo.getUrl())) {
+            reportPoint = this.reportTimes.get(actionInfo.getUrl());
+        }else {
+            reportPoint = new ReportPoint();
+        }
+        reportPoint.update(actionInfo.getElapsedTime());
+        this.reportTimes.put(actionInfo.getUrl(),reportPoint);
+    }
+
+    private void updateReportSizes(ActionInfo actionInfo) {
+        ReportPoint reportPoint;
+        if(this.reportSizes.containsKey(actionInfo.getUrl())) {
+            reportPoint = this.reportSizes.get(actionInfo.getUrl());
+        }else {
+            reportPoint = new ReportPoint();
+        }
+        reportPoint.update(actionInfo.getDownloadedBytes());
+        this.reportSizes.put(actionInfo.getUrl(),reportPoint);
     }
 
     private void updateTemporalValues(ActionInfo actionInfo) {
-        long previousElapsedTime = 0;
-        long previousDownloadedBytes = 0;
-        long previousUserCount = 0;
-        if(this.temporalValues.containsKey(actionInfo.getUrl())){
-            previousElapsedTime = this.temporalValues.get(actionInfo.getUrl()).get(ELAPSED_TIME_KEY);
-            previousDownloadedBytes = this.temporalValues.get(actionInfo.getUrl()).get(DOWNLOADED_BYTES_KEY);
-            previousUserCount = this.temporalValues.get(actionInfo.getUrl()).get(USER_COUNT_KEY);
-        }else {
-            Map<String,Long> newMap = new HashMap<>();
-            this.temporalValues.put(actionInfo.getUrl(),newMap);
+        if(actionInfo.getUrl() == NEW_USER_URL) { //This means that a new user was created
+            this.totalUsers++;
         }
-        this.temporalValues.get(actionInfo.getUrl()).put(ELAPSED_TIME_KEY,previousElapsedTime + actionInfo.getElapsedTime());
-        this.temporalValues.get(actionInfo.getUrl()).put(DOWNLOADED_BYTES_KEY,previousDownloadedBytes + actionInfo.getDownloadedBytes());
-        this.temporalValues.get(actionInfo.getUrl()).put(USER_COUNT_KEY,previousUserCount + 1);
+        else {
+            this.updateReportErrors(actionInfo);
+            this.updateReportSizes(actionInfo);
+            this.updateReportTimes(actionInfo);
+        }
 
 
     }
@@ -66,8 +111,15 @@ public class Reporter implements Runnable{
 
         while(SessionControl.shouldRun()) {
             this.reportTimeSlice();
-            //System.out.println(this.temporalValues);
-            this.temporalValues = new HashMap<>();
+            System.out.println(this.reportErrors);
+            System.out.println(this.reportTimes);
+            System.out.println(this.reportSizes);
+            System.out.println(this.totalUsers);
+
+            this.totalUsers = 0;
+            this.reportErrors = new HashMap<>();
+            this.reportTimes = new HashMap<>();
+            this.reportSizes = new HashMap<>();
         }
 
     }

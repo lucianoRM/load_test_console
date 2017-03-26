@@ -28,7 +28,6 @@ public class Monitor implements Runnable{
 
 
     private BlockingQueue<MonitorInfo> incomingInfoQueue;
-    private String filePath = Configuration.getMonitorFilePath();
     private File monitorFile;
     private Map<String,Integer> informationCount;
 
@@ -42,7 +41,7 @@ public class Monitor implements Runnable{
         this.informationCount.put(DOWNLOADING_THREADS_KEY,0);
         this.informationCount.put(URL_KEY,0);
 
-        this.monitorFile = new File(this.filePath);
+        this.monitorFile = new File(Configuration.getMonitorFilePath());
         try {
             this.monitorFile.createNewFile();
         }catch(IOException e) {

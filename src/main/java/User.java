@@ -24,6 +24,7 @@ public class User implements Runnable {
     private static final String GET_ACTION_METHOD = "GET";
     private static final String SOURCE_ATTRIBUTE = "src";
     private static final String URL_KEY = "url";
+    private static final String NEW_USER_URL = "new_user";
 
     private static final List<String> RESOURCES_TAGS = new ArrayList<String>() {{
         add("img");
@@ -138,6 +139,12 @@ public class User implements Runnable {
     public void run() {
 
         logger.info("Started");
+
+        /**
+         * This is to notify the reporter that a new user is running
+         */
+        ActionInfo actionInfo = new ActionInfo(NEW_USER_URL,-1,-1);
+        this.reporterOutgoingInfoQueue.add(actionInfo);
         while(SessionControl.shouldRun()) {
             for (Action action : this.scriptActions) {
                 this.startTimer();
