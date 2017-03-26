@@ -51,14 +51,14 @@ public class UserLauncher implements Runnable{
             try {
                 readQueueAndLaunchUsers();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                this.logger.warn(e);
             }
         }
         this.usersPool.shutdown();
         try {
-            this.usersPool.awaitTermination(10000, TimeUnit.MILLISECONDS);
+            this.usersPool.awaitTermination(Configuration.getTimeout(), TimeUnit.MILLISECONDS);
         }catch(InterruptedException e){
-            e.printStackTrace();
+            this.logger.error("Interrupted while waiting for users to exit");
         }
         logger.info("Finished");
     }

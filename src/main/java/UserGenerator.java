@@ -45,7 +45,7 @@ public class UserGenerator implements Runnable{
         try {
             this.generateUsers();
         }catch(InterruptedException e){
-            e.printStackTrace();
+            this.logger.warn(e);
         }
         this.logger.info("Finished");
     }

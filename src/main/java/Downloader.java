@@ -56,7 +56,9 @@ public class Downloader implements Runnable {
             response = this.client.newCall(request).execute();
             this.logger.info("Got resource");
         }catch(IOException e) {
-            e.printStackTrace();
+            this.logger.error(e);
+            this.logger.error("Exiting");
+            return;
         }
         long tEnd = System.currentTimeMillis();
         DownloaderInfo downloaderInfo = new DownloaderInfo(this.url,tEnd - tStart,response.body().contentLength());

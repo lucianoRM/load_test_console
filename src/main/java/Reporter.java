@@ -1,9 +1,12 @@
 import okhttp3.Response;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * Created by ms0371 on 3/22/17.
@@ -24,6 +27,7 @@ public class Reporter implements Runnable{
     private Map<String,ReportPoint> reportSizes;
     private Map<String,Map<String,Integer>> reportErrors;
     private int totalUsers;
+    private Logger logger = LogManager.getLogger(this.getClass());
 
 
     public Reporter(BlockingQueue<ActionInfo> incomingActionInfoQueue) {
@@ -100,7 +104,7 @@ public class Reporter implements Runnable{
                     this.updateTemporalValues(actionInfo);
                 }
             }catch (InterruptedException e){
-                e.printStackTrace();
+                this.logger.warn("Interrupted while locked in queue");
             }
             long tEnd = System.currentTimeMillis();
             elapsedTime += (tEnd - tStart);
@@ -132,6 +136,7 @@ public class Reporter implements Runnable{
 
     public void run() {
 
+        this.logger.info("Started");
         while(SessionControl.shouldRun()) {
             this.reportTimeSlice();
             this.displayReport();
@@ -141,6 +146,7 @@ public class Reporter implements Runnable{
             this.reportTimes = new HashMap<>();
             this.reportSizes = new HashMap<>();
         }
+        this.logger.info("Finished");
 
     }
 }

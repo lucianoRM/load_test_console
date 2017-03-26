@@ -1,6 +1,10 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 
 /**
  * Created by luciano on 19/03/17.
@@ -9,6 +13,7 @@ public class Configuration {
 
     private static Properties properties;
     private static final String CONFIGURATION_FILE_NAME = "config.properties";
+    private static Logger logger = LogManager.getLogger(Configuration.class);
 
     static {
         properties = new Properties();
@@ -17,7 +22,8 @@ public class Configuration {
             properties.load(is);
             is.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn("Error reading from properties file" + e);
+            SessionControl.stop();
         }
     }
 

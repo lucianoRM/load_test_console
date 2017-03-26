@@ -11,6 +11,8 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException, InvalidScriptException, FileNotFoundException{
 
+
+
         ScriptLoader scriptLoader = new ScriptLoader();
         scriptLoader.loadScript("./src/test/resources/validScript.json");
         BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
@@ -31,16 +33,19 @@ public class Main {
         reporterThread.start();
         monitorThread.start();
 
-
-        TimeUnit.MILLISECONDS.sleep(20000);
-        SessionControl.stop();
-        userGeneratorThread.join();
-        userLauncherThread.join();
-        reporterThread.join();
-        monitorThread.join();
-
-        System.out.println("END!!!!");
-
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                SessionControl.stop();
+                try {
+                    userGeneratorThread.join();
+                    userLauncherThread.join();
+                    reporterThread.join();
+                    monitorThread.join();
+                }catch(InterruptedException e){
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 }

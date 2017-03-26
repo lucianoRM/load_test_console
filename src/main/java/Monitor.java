@@ -1,4 +1,6 @@
 import com.google.common.collect.ImmutableMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,6 +20,7 @@ public class Monitor implements Runnable{
     private final String DOWNLOADING_THREADS_KEY = "downloading resources";
     private final String ANALYSING_THREADS_KEY = "analysing urls";
     private final String URL_KEY = "url";
+    private Logger logger = LogManager.getLogger(this.getClass());
 
     private final ImmutableMap<String,Boolean> DOWNLOAD_TAGS = new ImmutableMap.Builder<String,Boolean>()
             .put("img",true)
@@ -45,7 +48,7 @@ public class Monitor implements Runnable{
         try {
             this.monitorFile.createNewFile();
         }catch(IOException e) {
-            e.printStackTrace();
+            this.logger.error(e);
         }
     }
 
@@ -119,7 +122,7 @@ public class Monitor implements Runnable{
             writer.close();
 
         }catch (IOException e ){
-            e.printStackTrace();
+            this.logger.error(e);
         }
 
 
@@ -127,15 +130,21 @@ public class Monitor implements Runnable{
 
 
     public void run() {
+        this.logger.info("Started");
         while(SessionControl.shouldRun()) {
             try {
                 MonitorInfo monitorInfo = this.incomingInfoQueue.poll(Configuration.getTimeout(), TimeUnit.MILLISECONDS);
-                if(monitorInfo == null) continue;
+                if(monitorInfo == null) {
+                    continue;
+                }
                 this.update(monitorInfo);
                 this.write();
             }catch(InterruptedException e){
-                e.printStackTrace();
+                this.logger.error(e);
+                this.logger.error("Exiting");
+                break;
             }
         }
+        this.logger.info("Finished");
     }
 }

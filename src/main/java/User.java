@@ -1,7 +1,5 @@
 import com.google.common.collect.ImmutableMap;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -60,7 +58,7 @@ public class User implements Runnable {
         try {
             doc = Jsoup.parse(response.body().string(),"UTF-8", Parser.xmlParser());
         }catch(IOException e){
-            e.printStackTrace();
+            this.logger.warn("JSoup parse exception" + e);
         }
         for(String tag : RESOURCES_TAGS) {
             Elements elements = doc.getElementsByTag(tag);
@@ -94,7 +92,7 @@ public class User implements Runnable {
         }else {
             return new Request.Builder()
                     .url(action.getUrl())
-                    .post(null)
+                    .post(RequestBody.create(MediaType.parse("application/text; charset=utf-8"),action.getBody()))
                     .build();
         }
     }
@@ -116,7 +114,7 @@ public class User implements Runnable {
                 this.runningDownloaders--;
 
             }catch(InterruptedException e){
-                e.printStackTrace();
+                this.logger.warn("Interrupted while locked in queue");
             }
         }
         ActionInfo actionInfo = new ActionInfo(action.getUrl(),this.stopTimer(),downloadedBytes);
@@ -155,7 +153,9 @@ public class User implements Runnable {
                     response = this.client.newCall(request).execute();
                     logger.info("Got url response");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    this.logger.error(e);
+                    SessionControl.stop();
+                    break;
                 }
                 this.executeAction(response);
                 this.reportInfo(action);
@@ -163,9 +163,9 @@ public class User implements Runnable {
         }
         try {
             this.downlaodersPool.shutdown();
-            this.downlaodersPool.awaitTermination(10000,TimeUnit.MILLISECONDS);
+            this.downlaodersPool.awaitTermination(Configuration.getTimeout(),TimeUnit.MILLISECONDS);
         }catch(InterruptedException e) {
-            e.printStackTrace();
+            this.logger.error("Interrupted while waiting for downloaders to exit");
         }
         logger.info("Finished");
     }

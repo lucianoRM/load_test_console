@@ -12,7 +12,7 @@ public class TestAction {
 
     @Test
     public void testCorrectActionCreation() throws InvalidActionException {
-        Action action = new Action("GET","some url");
+        Action action = new Action("GET","some url",null);
         assertEquals("GET",action.getMethod());
         assertEquals("some url",action.getUrl());
 
@@ -20,7 +20,7 @@ public class TestAction {
 
     @Test(expected = InvalidActionException.class)
     public void testNewActionRaisesExceptionWhenMethodIsInvalid() throws InvalidActionException {
-        Action action = new Action("invalid method", "an url");
+        Action action = new Action("invalid method", "an url","body");
     }
 
 }
