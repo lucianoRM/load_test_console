@@ -9,6 +9,8 @@ import java.util.Map;
 
 /**
  * Created by luciano on 25/03/17.
+ * Stores information sent to the monitor.
+ *
  */
 public class MonitorInfo {
 

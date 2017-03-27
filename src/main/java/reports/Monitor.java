@@ -18,6 +18,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by luciano on 25/03/17.
+ * This class handles the monitoring of threads and downloaded resources in the application. It contanstly reads from
+ * a queue and updates a locar map with the new values. Every time a value changes, it dumps the whole information to a
+ * log file.
+ *
  */
 public class Monitor implements Runnable{
 

@@ -7,7 +7,7 @@ import exception.InvalidScriptException;
 
 /**
  * Created by luciano on 18/03/17.
- * Wraps the actions that the user would do
+ * Wraps the actions that the user would do. Every action contains a method, and url and, if they require, a body.
  */
 public class Action {
     private static String METHOD_JSON_KEY = "method";

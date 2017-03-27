@@ -12,6 +12,8 @@ import java.util.concurrent.*;
 
 /**
  * Created by luciano on 19/03/17.
+ *
+ * Reads a queue and launches a user for every number read in the queue.
  */
 public class UserLauncher implements Runnable{
 

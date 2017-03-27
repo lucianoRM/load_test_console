@@ -12,6 +12,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by luciano on 19/03/17.
+ *
+ * It reads the userPattern and counts time to write how many new users must be created in every time slice.
+ *
  */
 public class UserGenerator implements Runnable{
 

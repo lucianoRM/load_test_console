@@ -20,6 +20,9 @@ import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by ms0371 on 3/22/17.
+ *
+ * Handles the downloading of the resources.
+ * When the response is received, it computes the resource size and sends the information to the user
  */
 public class Downloader implements Runnable {
 

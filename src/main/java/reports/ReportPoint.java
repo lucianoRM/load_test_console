@@ -2,6 +2,8 @@ package reports;
 
 /**
  * Created by luciano on 26/03/17.
+ * It stores the value of a point in the report timeline.
+ *
  */
 public class ReportPoint {
 

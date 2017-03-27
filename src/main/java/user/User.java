@@ -33,6 +33,10 @@ import java.util.concurrent.*;
 
 /**
  * Created by luciano on 19/03/17.
+ * Handles the execution of the script.
+ * Every user contains a pool of downloaders.
+ * When the response is received, it is parsed and a downloader is raised for every resource found int the response.
+ *
  */
 public class User implements Runnable {
 

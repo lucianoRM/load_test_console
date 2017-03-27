@@ -15,6 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ms0371 on 3/22/17.
+ * Handles the reporting of the app. It constantly reads from a queue with new information and updates it locally.
+ * Once every timeSlice milliseconds, it outputs the info to the screen.
+ *
  */
 public class Reporter implements Runnable{
 

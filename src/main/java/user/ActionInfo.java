@@ -4,6 +4,8 @@ import java.util.LongSummaryStatistics;
 
 /**
  * Created by ms0371 on 3/22/17.
+ * Contains the information that a user sends to the reporter regarding the executed action.
+ *
  */
 public class ActionInfo {
 
