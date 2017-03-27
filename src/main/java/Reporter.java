@@ -2,6 +2,7 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -114,7 +115,19 @@ public class Reporter implements Runnable{
         }
     }
 
+    private void clearScreen() {
+//        System.out.print("\033[H\033[2J");
+//        System.out.flush();
+        try {
+            Runtime.getRuntime().exec("clear");
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     private void displayReport() {
+        this.clearScreen();
         System.out.println("Total users : " + this.totalUsers);
         for(Map.Entry<String,Map<String,Integer> > entry : this.reportErrors.entrySet()) {
             System.out.print(entry.getKey());

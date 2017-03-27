@@ -16,8 +16,20 @@ public class Main {
         System.setProperty("org.apache.commons.logging.Log",
                 "org.apache.commons.logging.impl.NoOpLog");
 
+        if(args.length != 1) {
+            System.out.println("Invalid args, script path expected");
+            return;
+        }
+
+
         ScriptLoader scriptLoader = new ScriptLoader();
-        scriptLoader.loadScript("/Users/ms0371/Documents/taller3/load_test_console/src/test/resources/validScript.json");
+
+        try {
+            scriptLoader.loadScript(args[0]);
+        }catch(Exception e) {
+            System.out.print("Script error " + e);
+            return;
+        }
         BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
         BlockingQueue<ActionInfo> actionInfoBlockingQueue = new LinkedBlockingQueue<>();
         BlockingQueue<MonitorInfo> monitorInfoBlockingQueue = new LinkedBlockingQueue<>();
