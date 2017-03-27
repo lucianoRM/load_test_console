@@ -1,12 +1,17 @@
 {
   "userCreationPattern":{
     "type":"ramp",
-    "timeSlice":5000,
-    "slope":1,
-    "threshold":100,
+    "timeSlice":1000,
+    "slope":3,
+    "threshold":1000,
     "initialValue":0
   },
   "actions": [
+    {
+      "method":"POST",
+      "url":"http://localhost:7000",
+      "body" : "GILLLLLL!"
+    },
     {
       "method":"GET",
       "url":"http://www.google.com"

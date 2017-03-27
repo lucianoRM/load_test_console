@@ -1,12 +1,20 @@
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+
 
 /**
  * Created by ms0371 on 3/22/17.
@@ -15,7 +23,7 @@ public class Downloader implements Runnable {
 
     private String url;
     private String resourceType;
-    private OkHttpClient client;
+    private CloseableHttpClient client;
     private BlockingQueue<DownloaderInfo> outgoingInfoQueue;
     private BlockingQueue<MonitorInfo> outgoingMonitorQueue;
     private Logger logger = LogManager.getLogger(this.getClass());
@@ -26,12 +34,14 @@ public class Downloader implements Runnable {
         this.resourceType = resourceType;
         this.outgoingInfoQueue = outgoingInfoQueue;
         this.outgoingMonitorQueue = outgoingMonitorQueue;
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.connectTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES);
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Configuration.getHttpTimeout())
+                .setConnectTimeout(Configuration.getHttpTimeout())
+                .setSocketTimeout(Configuration.getHttpTimeout())
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
+        this.client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
 
-        this.client = builder.build();
     }
 
     private void notifyErrorToUser() {
@@ -39,11 +49,9 @@ public class Downloader implements Runnable {
         this.outgoingInfoQueue.add(downloaderInfo);
     }
 
-    private Request createRequest() {
+    private HttpUriRequest createRequest() {
         try {
-            return new Request.Builder()
-                    .url(this.url)
-                    .build();
+            return new HttpGet(this.url);
         }catch(IllegalArgumentException e) {
             this.logger.error("Closing downloader" + e);
             this.notifyErrorToUser();
@@ -61,18 +69,31 @@ public class Downloader implements Runnable {
         this.outgoingMonitorQueue.add(monitorInfo);
     }
 
+    private long computeDownloadedBytes(HttpResponse response) {
+
+        String str=null;
+        try {
+            str = EntityUtils.toString(response.getEntity());
+            EntityUtils.consumeQuietly(response.getEntity());
+        }catch(IOException e) {
+            this.logger.warn("Error computing size " + e);
+            return -1;
+        }
+        return str.length();
+    }
+
 
     public void run() {
 
         this.logger.info("Started");
         long tStart = System.currentTimeMillis();
         this.notifyMonitor(true);
-        Request request = this.createRequest();
+        HttpUriRequest request = this.createRequest();
         if(request == null) return;
-        Response response = null;
+        HttpResponse response = null;
         try {
             this.logger.info("Requesting resource");
-            response = this.client.newCall(request).execute();
+            response = this.client.execute(request);
             this.logger.info("Got resource");
         }catch(IOException e) {
             this.logger.error("Closing downloader " + e);
@@ -81,12 +102,17 @@ public class Downloader implements Runnable {
         }
         long tEnd = System.currentTimeMillis();
         long time;
-        if(response.code() < 400) {
+        if(response.getStatusLine().getStatusCode() >= 400 ) {
             time = tEnd - tStart;
         }else {
-            time = -1; //This is the code to notify an error in thw request
+            time = -1; //This is the code to notify an error in the request
         }
-        DownloaderInfo downloaderInfo = new DownloaderInfo(this.url,time,response.body().contentLength(),false);
+        long size = this.computeDownloadedBytes(response);
+        if (size < 0) {
+            this.notifyErrorToUser();
+            return;
+        }
+        DownloaderInfo downloaderInfo = new DownloaderInfo(this.url,time,size,false);
         this.outgoingInfoQueue.add(downloaderInfo);
         this.notifyMonitor(false);
         this.logger.info("Finished");

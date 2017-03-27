@@ -1,4 +1,4 @@
-import okhttp3.Response;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -81,12 +81,15 @@ public class Reporter implements Runnable{
 
     private void updateTemporalValues(ActionInfo actionInfo) {
         if(actionInfo.getUrl() == NEW_USER_URL) { //This means that a new user was created
-            this.totalUsers++;
+            this.totalUsers+=actionInfo.getElapsedTime(); //Elapsed time will have a +1 or a -1 if a user is created or deleted
         }
         else {
+            if(actionInfo.getElapsedTime() >= 0) {
+                this.updateReportSizes(actionInfo);
+                this.updateReportTimes(actionInfo);
+            }
             this.updateReportErrors(actionInfo);
-            this.updateReportSizes(actionInfo);
-            this.updateReportTimes(actionInfo);
+
         }
 
 
@@ -114,16 +117,19 @@ public class Reporter implements Runnable{
     private void displayReport() {
         System.out.println("Total users : " + this.totalUsers);
         for(Map.Entry<String,Map<String,Integer> > entry : this.reportErrors.entrySet()) {
-            System.out.println(entry.getKey());
+            System.out.print(entry.getKey());
 
-            System.out.println("Requests");
-            System.out.println("--Errors : " + entry.getValue().get(ERROR_KEY));
-            System.out.println("--Success : " + entry.getValue().get(SUCCESS_KEY));
+            //System.out.println("Requests");
+            System.out.print(" Errors: " + entry.getValue().get(ERROR_KEY));
+            System.out.print(" Success: " + entry.getValue().get(SUCCESS_KEY));
 
-            System.out.println("Times");
-            System.out.println("--MIN : " + this.reportTimes.get(entry.getKey()).getMin() + " ms");
-            System.out.println("--MAX : " + this.reportTimes.get(entry.getKey()).getMax() + " ms");
-            System.out.println("--AVG : " + this.reportTimes.get(entry.getKey()).getAvg() + " ms");
+            if(this.reportTimes.containsKey(entry.getKey())) {
+                //System.out.println("Times");
+                System.out.print(" minTime: " + this.reportTimes.get(entry.getKey()).getMin() + "ms");
+                System.out.print(" maxTime: " + this.reportTimes.get(entry.getKey()).getMax() + "ms");
+                System.out.print(" avgTime: " + this.reportTimes.get(entry.getKey()).getAvg() + "ms");
+            }
+            System.out.println();
 
 //            System.out.println("Sizes");
 //            System.out.println("--MIN : " + this.reportSizes.get(entry.getKey()).getMin() + " ms");

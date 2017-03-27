@@ -47,4 +47,8 @@ public class Configuration {
     public static String getMonitorFilePath() {
         return properties.getProperty("monitorfilepath");
     }
+
+    public static int getHttpTimeout() {
+        return Integer.parseInt(properties.getProperty("httptimeout"));
+    }
 }

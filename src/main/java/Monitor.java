@@ -48,7 +48,7 @@ public class Monitor implements Runnable{
         try {
             this.monitorFile.createNewFile();
         }catch(IOException e) {
-            this.logger.error("Terminating " + e);
+            this.logger.error("Invalid monitor log path, terminating " + e);
             SessionControl.stop();
         }
     }

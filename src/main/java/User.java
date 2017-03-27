@@ -1,5 +1,16 @@
 import com.google.common.collect.ImmutableMap;
-import okhttp3.*;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -7,7 +18,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
-
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +47,7 @@ public class User implements Runnable {
 
     private List<Action> scriptActions;
     private ExecutorService downlaodersPool = Executors.newFixedThreadPool(Configuration.getConcurrentDownloadersCount());
-    private OkHttpClient client;
+    private HttpClient client;
     private BlockingQueue<DownloaderInfo> downloaderIncomingInfoQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<ActionInfo> reporterOutgoingInfoQueue;
     private BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue;
@@ -50,22 +60,23 @@ public class User implements Runnable {
         this.reporterOutgoingInfoQueue = reporterOutgoingInfoQueue;
         this.monitorOutgoingInfoQueue = monitorOutgoingInfoQueue;
         this.scriptActions = scriptActions;
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.connectTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES);
-
-        this.client = builder.build();
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Configuration.getHttpTimeout())
+                .setConnectTimeout(Configuration.getHttpTimeout())
+                .setSocketTimeout(Configuration.getHttpTimeout())
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
+        this.client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     }
 
-    private void executeAction(Response response) {
+    private void executeAction(HttpResponse response) throws OutOfMemoryError{
 
         Document doc = null;
         MonitorInfo monitorInfo = new MonitorInfo();
         monitorInfo.notifyActionStarted(URL_KEY);
         this.monitorOutgoingInfoQueue.add(monitorInfo);
         try {
-            doc = Jsoup.parse(response.body().string(),"UTF-8", Parser.xmlParser());
+            doc = Jsoup.parse(EntityUtils.toString(response.getEntity()),"UTF-8", Parser.xmlParser());
         }catch(IOException e){
             this.logger.warn("JSoup parse exception " + e);
             return;
@@ -84,34 +95,45 @@ public class User implements Runnable {
         return url.startsWith("http");
     }
 
-    private void launchDownloaders(Elements elements) {
+    private void launchDownloaders(Elements elements) throws OutOfMemoryError{
 
         for(Element element : elements) {
             String url = element.attr(SOURCE_ATTRIBUTE);
             if(url == "") {
                 url = element.attr(HREF_ATTRIBUTE);
             }
-            if(url != ""&& this.isLink(url)) { //"" means that the attribute does not exist in the tag
-                this.downlaodersPool.execute(new Downloader(url,element.nodeName(),this.downloaderIncomingInfoQueue,this.monitorOutgoingInfoQueue));
-                runningDownloaders++;
-                this.logger.info("Started downloader");
+            if(url != "" && this.isLink(url)) { //"" means that the attribute does not exist in the tag
+                try {
+                    this.downlaodersPool.execute(new Downloader(url, element.nodeName(), this.downloaderIncomingInfoQueue, this.monitorOutgoingInfoQueue));
+                    runningDownloaders++;
+                    this.logger.info("Started downloader");
+                }catch (OutOfMemoryError e){
+                    this.logger.error("Could not create new downloader, exiting " + e);
+                    throw new OutOfMemoryError();
+                }catch (RejectedExecutionException e){
+                    this.logger.error("Could not create new downloader, exiting " + e);
+                    throw new OutOfMemoryError();
+                }
             }
         }
 
     }
 
 
-    private Request createRequest(Action action) {
+    private HttpUriRequest createRequest(Action action) {
+
+
+
         if(action.getMethod().equals(GET_ACTION_METHOD)) {
-            return new Request.Builder()
-                    .url(action.getUrl())
-                    .build();
+            return new HttpGet(action.getUrl());
         }else {
-            return new Request.Builder()
-                    .url(action.getUrl())
-                    .post(RequestBody.create(MediaType.parse("application/text; charset=utf-8"),action.getBody()))
-                    .build();
+            HttpPost request = new HttpPost(action.getUrl());
+            request.setHeader("Content-Type", "application/text");
+            request.setEntity(new ByteArrayEntity(action.getBody().getBytes()));
+            return  request;
         }
+
+
     }
 
     private void reportInfo(Action action) {
@@ -153,38 +175,72 @@ public class User implements Runnable {
     }
 
 
-    public void run() {
-
-        logger.info("Started");
-
-        /**
-         * This is to notify the reporter that a new user is running
-         */
-        ActionInfo actionInfo = new ActionInfo(NEW_USER_URL,-1,-1);
-        this.reporterOutgoingInfoQueue.add(actionInfo);
-        while(SessionControl.shouldRun()) {
-            for (Action action : this.scriptActions) {
-                this.startTimer();
-                Request request = this.createRequest(action);
-                Response response = null;
-                try {
-                    logger.info("Requested url");
-                    response = this.client.newCall(request).execute();
-                    logger.info("Got url response");
-                } catch (IOException e) {
-                    this.logger.error("Exiting " + e);
-                    break;
-                }
-                this.executeAction(response);
-                this.reportInfo(action);
-            }
-        }
-        try {
+    private void exit() {
+        try{
             this.downlaodersPool.shutdown();
             this.downlaodersPool.awaitTermination(Configuration.getTimeout(),TimeUnit.MILLISECONDS);
+            this.notifyUserStoped();
         }catch(InterruptedException e) {
             this.logger.error("Interrupted " + e);
         }
+    }
+
+
+    private void notifyUserStarted() {
+        /**
+         * This is to notify the reporter that a new user is running
+         */
+        ActionInfo actionInfo = new ActionInfo(NEW_USER_URL,1,-1);
+        this.reporterOutgoingInfoQueue.add(actionInfo);
+    }
+
+    private void notifyUserStoped() {
+        /**
+         * This is to notify the reporter that a new user stopped running
+         */
+        ActionInfo actionInfo = new ActionInfo(NEW_USER_URL,-1,-1);
+        this.reporterOutgoingInfoQueue.add(actionInfo);
+    }
+
+
+    private void notifyRequestError(Action action) {
+        ActionInfo actionInfo = new ActionInfo(action.getUrl(),-1,-1); //-1 in elapsed time means that there was an error in the request
+        this.reporterOutgoingInfoQueue.add(actionInfo);
+    }
+
+    public void run() {
+
+        logger.info("Started");
+        this.notifyUserStarted();
+        while(SessionControl.shouldRun()) {
+            for (Action action : this.scriptActions) {
+                this.startTimer();
+                HttpUriRequest request = this.createRequest(action);
+                HttpResponse response = null;
+                try {
+                    logger.info("Requested url");
+                    response = this.client.execute(request);
+                    if(response.getStatusLine().getStatusCode() >= 400 ) {
+                        logger.warn("Unsuccessful response in " + action.getUrl() + " : " + response.getStatusLine().getStatusCode());
+                        EntityUtils.consumeQuietly(response.getEntity());
+                        this.notifyRequestError(action);
+                        continue;
+                    }
+                    logger.info("Got url response");
+                } catch (IOException e) {
+                    this.notifyRequestError(action);
+                    this.logger.error("Connection error " + e);
+                    continue;
+                }
+                try {
+                    this.executeAction(response);
+                }catch (OutOfMemoryError e){
+                    this.exit();
+                }
+                this.reportInfo(action);
+            }
+        }
+        this.exit();
         logger.info("Finished");
     }
 }

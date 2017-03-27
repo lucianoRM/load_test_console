@@ -2,10 +2,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by luciano on 19/03/17.
@@ -29,7 +26,7 @@ public class UserLauncher implements Runnable{
 
     }
 
-    private void readQueueAndLaunchUsers() throws InterruptedException{
+    private void readQueueAndLaunchUsers() throws InterruptedException,OutOfMemoryError{
 
         Integer newUsers = this.incomingUsersQueue.poll(Configuration.getTimeout(), TimeUnit.MILLISECONDS);
         logger.info("Read queue");
@@ -38,8 +35,13 @@ public class UserLauncher implements Runnable{
             return;
         }
         for(int i = 0; i < newUsers; i++) {
-            this.usersPool.execute(new User(this.scriptActions,this.userReportingQueue,this.userMonitorInfoQueue));
-            logger.info("Launched User");
+            try {
+                this.usersPool.execute(new User(this.scriptActions, this.userReportingQueue, this.userMonitorInfoQueue));
+                logger.info("Launched User");
+            }catch(OutOfMemoryError e) {
+                this.logger.error("Could not create new user, exiting " + e);
+                throw new OutOfMemoryError();
+            }
         }
 
     }
@@ -52,6 +54,13 @@ public class UserLauncher implements Runnable{
                 readQueueAndLaunchUsers();
             } catch (InterruptedException e) {
                 this.logger.warn("Interrupted while locked " + e);
+                break;
+            } catch (OutOfMemoryError e) {
+                this.logger.error("Could not create new user, exiting " + e);
+                break;
+            } catch (RejectedExecutionException e){
+                this.logger.error("Could not create new user, exiting " + e);
+                break;
             }
         }
         this.usersPool.shutdown();
