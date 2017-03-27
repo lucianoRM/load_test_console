@@ -232,7 +232,7 @@ public class User implements Runnable {
                 }catch(Exception e) {
                     this.logger.error("Could not create request " + e);
                     this.notifyRequestError(action);
-                    continue;git
+                    continue;
                 }
                 HttpResponse response = null;
                 try {
