@@ -21,15 +21,7 @@ public class TestScriptLoader {
         this.scriptLoader.loadScript(scriptPathUrl.getPath());
     }
 
-    @Test
-    public void testCorrectScriptLoads() throws InvalidScriptException,FileNotFoundException {
-        URL scriptPathUrl = this.getClass().getResource("validScript.json");
-        this.scriptLoader.loadScript(scriptPathUrl.getPath());
-        assertEquals("GET",this.scriptLoader.getActionList().get(0).getMethod());
-        assertEquals("POST",this.scriptLoader.getActionList().get(1).getMethod());
-        assertEquals("http://www.google.com",this.scriptLoader.getActionList().get(0).getUrl());
-        assertEquals("http://www.facebook.com",this.scriptLoader.getActionList().get(1).getUrl());
-    }
+    
 
 
 }
