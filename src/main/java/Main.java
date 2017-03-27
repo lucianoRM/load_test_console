@@ -1,9 +1,15 @@
 import exception.InvalidScriptException;
+import reports.Monitor;
+import reports.MonitorInfo;
+import reports.Reporter;
+import user.ActionInfo;
+import user.UserGenerator;
+import user.UserLauncher;
+import utils.ScriptLoader;
+import utils.SessionControl;
 
-import java.awt.*;
 import java.io.FileNotFoundException;
 import java.util.concurrent.*;
-import java.util.logging.Level;
 
 /**
  * Created by luciano on 18/03/17.
@@ -13,8 +19,13 @@ public class Main {
     public static void main(String[] args) throws InterruptedException, InvalidScriptException, FileNotFoundException{
 
 
+        /**
+         * This is to cancel httpclient logs
+         */
         System.setProperty("org.apache.commons.logging.Log",
                 "org.apache.commons.logging.impl.NoOpLog");
+
+
 
         if(args.length != 1) {
             System.out.println("Invalid args, script path expected");
@@ -48,6 +59,10 @@ public class Main {
         reporterThread.start();
         monitorThread.start();
 
+
+        /**
+         * hook to handle signal to close all threads correctly
+         */
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 SessionControl.stop();

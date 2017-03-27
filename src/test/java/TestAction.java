@@ -1,5 +1,6 @@
 import exception.InvalidActionException;
 import org.junit.Test;
+import user.Action;
 
 import static org.junit.Assert.assertEquals;
 

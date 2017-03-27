@@ -1,6 +1,9 @@
+package user;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import usercreationpattern.UserCreationPattern;
+import utils.SessionControl;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;

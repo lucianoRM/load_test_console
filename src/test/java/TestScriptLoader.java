@@ -1,6 +1,6 @@
-import exception.InvalidActionException;
 import exception.InvalidScriptException;
 import org.junit.Test;
+import utils.ScriptLoader;
 
 import java.io.FileNotFoundException;
 import java.net.URL;

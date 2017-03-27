@@ -1,3 +1,5 @@
+package reports;
+
 import com.google.common.collect.ImmutableMap;
 
 import java.util.ArrayList;

@@ -1,3 +1,5 @@
+package user;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -18,6 +20,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
+import reports.MonitorInfo;
+import user.downloader.Downloader;
+import user.downloader.DownloaderInfo;
+import utils.Configuration;
+import utils.SessionControl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,7 +63,7 @@ public class User implements Runnable {
     private Logger logger = LogManager.getLogger(this.getClass());
 
 
-    public User(List<Action> scriptActions,BlockingQueue<ActionInfo> reporterOutgoingInfoQueue,BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue) {
+    public User(List<Action> scriptActions, BlockingQueue<ActionInfo> reporterOutgoingInfoQueue, BlockingQueue<MonitorInfo> monitorOutgoingInfoQueue) {
         this.reporterOutgoingInfoQueue = reporterOutgoingInfoQueue;
         this.monitorOutgoingInfoQueue = monitorOutgoingInfoQueue;
         this.scriptActions = scriptActions;

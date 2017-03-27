@@ -1,6 +1,10 @@
+package reports;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import utils.Configuration;
+import utils.SessionControl;
 
 import java.io.File;
 import java.io.FileWriter;

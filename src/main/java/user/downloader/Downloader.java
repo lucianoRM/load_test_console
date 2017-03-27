@@ -1,6 +1,6 @@
+package user.downloader;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -10,6 +10,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import reports.MonitorInfo;
+import utils.Configuration;
 
 
 import java.io.IOException;
@@ -29,7 +31,7 @@ public class Downloader implements Runnable {
     private Logger logger = LogManager.getLogger(this.getClass());
 
 
-    public Downloader(String url,String resourceType,BlockingQueue<DownloaderInfo> outgoingInfoQueue,BlockingQueue<MonitorInfo> outgoingMonitorQueue) {
+    public Downloader(String url, String resourceType, BlockingQueue<DownloaderInfo> outgoingInfoQueue, BlockingQueue<MonitorInfo> outgoingMonitorQueue) {
         this.url = url;
         this.resourceType = resourceType;
         this.outgoingInfoQueue = outgoingInfoQueue;

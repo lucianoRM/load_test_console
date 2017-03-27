@@ -1,3 +1,5 @@
+package user;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import exception.InvalidActionException;

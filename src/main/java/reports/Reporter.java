@@ -1,6 +1,10 @@
+package reports;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import user.ActionInfo;
+import utils.Configuration;
+import utils.SessionControl;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,8 +28,8 @@ public class Reporter implements Runnable{
 
     private BlockingQueue<ActionInfo> incomingActionInfoQueue;
     private int timeSlice = Configuration.getReportingTimeSlice();
-    private Map<String,ReportPoint> reportTimes;
-    private Map<String,ReportPoint> reportSizes;
+    private Map<String, ReportPoint> reportTimes;
+    private Map<String, ReportPoint> reportSizes;
     private Map<String,Map<String,Integer>> reportErrors;
     private int totalUsers;
     private Logger logger = LogManager.getLogger(this.getClass());
