@@ -226,7 +226,14 @@ public class User implements Runnable {
         while(SessionControl.shouldRun()) {
             for (Action action : this.scriptActions) {
                 this.startTimer();
-                HttpUriRequest request = this.createRequest(action);
+                HttpUriRequest request;
+                try {
+                    request = this.createRequest(action);
+                }catch(Exception e) {
+                    this.logger.error("Could not create request " + e);
+                    this.notifyRequestError(action);
+                    continue;git
+                }
                 HttpResponse response = null;
                 try {
                     logger.info("Requested url");

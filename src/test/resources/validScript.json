@@ -9,8 +9,8 @@
   "actions": [
     {
       "method":"POST",
-      "url":"http://localhost:7000",
-      "body" : "GILLLLLL!"
+      "url":" https://jsonplaceholder.typicode.com/posts",
+      "body" : "{ 'userId' : 1,'id' : 2, 'title' : 'this is a title' , 'body' : 'this is a body' }"
     },
     {
       "method":"GET",
