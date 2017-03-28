@@ -1,0 +1,28 @@
+{
+  "userCreationPattern":{
+    "type":"ramp",
+    "timeSlice":1000,
+    "slope":1,
+    "threshold":2,
+    "initialValue":2
+  },
+  "actions": [
+    {
+      "method":"POST",
+      "url":"https://jsonplaceholder.typicode.com/posts",
+      "body" : "{ 'userId' : 1,'id' : 2, 'title' : 'this is a title' , 'body' : 'this is a body' }"
+    },
+    {
+      "method":"GET",
+      "url":"http://www.google.com"
+    },
+    {
+      "method":"GET",
+      "url":"http://www.clarin.com"
+    },
+    {
+      "method":"GET",
+      "url":"http://www.github.com"
+    }
+  ]
+}
